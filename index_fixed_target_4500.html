@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PlanSee Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+      margin: 0;
+      background: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+    .logo {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+    .logo span {
+      color: #f5a623;
+      font-weight: bold;
+    }
+    .subtext {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      color: #ccc;
+    }
+    .meters {
+      font-size: 4rem;
+      font-weight: bold;
+      color: #f5a623;
+      margin-bottom: 1rem;
+    }
+    .bar-container {
+      width: 80%;
+      height: 40px;
+      background: #333;
+      border-radius: 50px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+    .bar-fill {
+      height: 100%;
+      background: #f5a623;
+      transition: width 0.5s ease-in-out;
+    }
+    .milestone, .top-seller, .target-label {
+      font-size: 1.5rem;
+      margin-top: 0.5rem;
+    }
+    .top-seller {
+      color: #f5a623;
+    }
+  </style>
+</head>
+<body>
+  <div class="logo"><span>plan</span>See</div>
+  <div class="subtext">Get what you see</div>
+  <div class="meters" id="totalMeters">0 m²</div>
+  <div class="bar-container">
+    <div class="bar-fill" id="progressBar"></div>
+  </div>
+  <div class="target-label" id="targetLabel">Target: ...</div>
+  <div class="milestone" id="milestone">Loading milestone...</div>
+  <div class="top-seller" id="topSeller">Top Seller: ...</div>
+
+  <script>
+    const sheetId = '1EKKNz639aylsX8mDBzBG00k2Dq9B_TeidN6dXyGjtYg';
+    const sheetName = 'Sheet1';
+    const apiKey = 'AIzaSyA0LczZfO2SY8jVtzMpGQbMAvZhZsfh95s';
+
+    async function fetchData() {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}?key=${apiKey}`;
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        const rows = data.values;
+        const total = rows.slice(1).reduce((acc, row) => acc + parseInt(row[1] || 0), 0);
+        const target = 4500;
+
+        document.getElementById('totalMeters').textContent = `${total} m²`;
+        document.getElementById('targetLabel').textContent = `Target: ${target} m²`;
+
+        const progressPercent = Math.min((total / target) * 100, 100);
+        document.getElementById('progressBar').style.width = `${progressPercent}%`;
+
+        const milestone = document.getElementById('milestone');
+        if (total >= target) {
+          milestone.textContent = '🎉 Target achieved! Amazing job!';
+        } else if (total >= target * 0.75) {
+          milestone.textContent = '🔥 Final push! Just a little more!';
+        } else if (total >= target * 0.5) {
+          milestone.textContent = '💪 Halfway there! Keep going!';
+        } else {
+          milestone.textContent = `Let's break the 1st ${Math.ceil(target / 3)}m²!`;
+        }
+
+        const memberTotals = {};
+        rows.slice(1).forEach(row => {
+          const name = row[2];
+          const value = parseInt(row[1] || 0);
+          if (!name) return;
+          if (!memberTotals[name]) memberTotals[name] = 0;
+          memberTotals[name] += value;
+        });
+
+        const topMember = Object.entries(memberTotals).sort((a, b) => b[1] - a[1])[0];
+        document.getElementById('topSeller').textContent = topMember ? `Top Seller: ${topMember[0]}` : 'Top Seller: N/A';
+
+      } catch (err) {
+        console.error('Error fetching data', err);
+      }
+    }
+
+    fetchData();
+    setInterval(fetchData, 60000);
+  </script>
+</body>
+</html>
