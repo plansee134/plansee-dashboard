@@ -26,7 +26,7 @@
       margin-bottom: 30px;
     }
 
-    /* Flex wrapper لعرض الكروت جنبا إلى جنب */
+    /* Flex wrapper لعرض الكروت جنب بعض */
     .teams-wrapper {
       display: flex;
       flex-wrap: wrap;
@@ -76,10 +76,9 @@
     }
 
     /* —— ألوان Sales بالبرتقالي —— */
-    #salesTeam .progress,
-    #salesTeam .top-seller,
+    #salesTeam h2,
     #salesTeam .target-label,
-    #salesTeam h2 {
+    #salesTeam .top-seller {
       color: #f5a623;
     }
     #salesTeam .progress {
@@ -87,10 +86,9 @@
     }
 
     /* —— ألوان Ops بالأخضر —— */
-    #opsTeam .progress,
-    #opsTeam .top-seller,
+    #opsTeam h2,
     #opsTeam .target-label,
-    #opsTeam h2 {
+    #opsTeam .top-seller {
       color: #4CAF50;
     }
     #opsTeam .progress {
@@ -140,7 +138,7 @@
         const salesTarget = parseFloat(first.sales_target) || 0;
         const opsTarget   = parseFloat(first.ops_target)   || 0;
 
-        // جمع القياسات لكلا الفريقين (مُضمِن الصف الأول)
+        // جمع القياسات لكلا الفريقين (بما في ذلك الصف الأول)
         let salesTotal = 0, opsTotal = 0;
         const salesBy = {}, opsBy = {};
 
@@ -193,7 +191,7 @@
       }
     }
 
-    // شغل البيانات أول مرة وكل 60 ثانية
+    // شغّل البيانات أول مرة وكل 60 ثانية
     fetchData();
     setInterval(fetchData, 60_000);
   </script>
