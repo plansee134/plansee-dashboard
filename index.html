@@ -1,105 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PlanSee Sales & Ops Tracker</title>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PlanSee Tracker</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
   <style>
     body {
-      margin: 0;
-      font-family: 'Montserrat', sans-serif;
-      background-color: #000;
-      color: #f5a623;
+      margin: 0; font-family: 'Montserrat',sans-serif;
+      background: #000; color:#f5a623;
+      text-align: center; padding:20px 0;
+    }
+    .logo { font-size:48px; font-weight:bold; }
+    .logo span { color:#fff; }
+    .tagline { color:#fff; margin-bottom:30px; }
+
+    /* ** هنا Flex للعرض بجانب بعض ** */
+    .teams-wrapper {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px 0;
-      text-align: center;
-    }
-    .logo {
-      font-size: 48px;
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-    .logo span { color: #fff; }
-    .tagline {
-      font-size: 18px;
-      color: #fff;
-      margin-bottom: 30px;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
     }
     .team-container {
-      width: 80%;
-      max-width: 600px;
+      flex: 1 1 300px;
+      max-width: 500px;
       background: #111;
       border-radius: 8px;
       padding: 20px;
-      margin-bottom: 30px;
     }
-    .team-container h2 {
-      font-size: 28px;
-      color: #fff;
-      margin-bottom: 15px;
-    }
-    .counter {
-      font-size: 56px;
-      font-weight: bold;
-      margin: 10px 0;
-    }
+    .team-container h2 { color:#fff; margin-bottom:15px; font-size:28px; }
+    .counter { font-size:56px; margin:10px 0; font-weight:bold; }
     .progress-bar {
-      width: 100%;
-      height: 30px;
-      background-color: #333;
-      border-radius: 15px;
-      overflow: hidden;
-      margin-bottom: 10px;
+      width:100%; height:30px; background:#333;
+      border-radius:15px; overflow:hidden;
+      margin-bottom:10px;
     }
-    .progress {
-      height: 100%;
-      background-color: #f5a623;
-      width: 0;
-      transition: width 1s ease-in-out;
-    }
-    .target-label {
-      font-size: 14px;
-      color: #ccc;
-      margin-bottom: 15px;
-    }
-    .milestone {
-      font-size: 20px;
-      color: #fff;
-      margin-bottom: 10px;
-    }
-    .top-seller {
-      font-size: 18px;
-      color: #f5a623;
-    }
+    .progress { height:100%; background:#f5a623; width:0; transition:width 1s; }
+    .target-label { color:#ccc; margin-bottom:15px; }
+    .milestone { color:#fff; margin-bottom:10px; }
+    .top-seller { color:#f5a623; font-size:18px; }
   </style>
 </head>
 <body>
   <div class="logo">Plan<span>See</span></div>
   <div class="tagline">Get what you see</div>
 
-  <div class="team-container" id="salesTeam">
-    <h2>Sales Team</h2>
-    <div class="counter"      id="salesCounter">0 m²</div>
-    <div class="progress-bar"><div class="progress" id="salesProgress"></div></div>
-    <div class="target-label" id="salesTargetLabel">Target: 0 m²</div>
-    <div class="milestone"    id="salesMilestone">Let's break the 1st 25%!</div>
-    <div class="top-seller"   id="topSeller">Top Seller: N/A</div>
-  </div>
+  <div class="teams-wrapper">
+    <!-- Sales Team -->
+    <div class="team-container" id="salesTeam">
+      <h2>Sales Team</h2>
+      <div class="counter"      id="salesCounter">0 m²</div>
+      <div class="progress-bar"><div class="progress" id="salesProgress"></div></div>
+      <div class="target-label" id="salesTargetLabel">Target: 0 m²</div>
+      <div class="milestone"    id="salesMilestone">Let's break the 1st 25%!</div>
+      <div class="top-seller"   id="topSeller">Top Seller: N/A</div>
+    </div>
 
-  <div class="team-container" id="opsTeam">
-    <h2>Operation Team</h2>
-    <div class="counter"      id="opsCounter">0 m²</div>
-    <div class="progress-bar"><div class="progress" id="opsProgress"></div></div>
-    <div class="target-label" id="opsTargetLabel">Target: 0 m²</div>
-    <div class="milestone"    id="opsMilestone">Let's break the 1st 25%!</div>
-    <div class="top-seller"   id="topAchiever">Top Achiever: N/A</div>
+    <!-- Operation Team -->
+    <div class="team-container" id="opsTeam">
+      <h2>Operation Team</h2>
+      <div class="counter"      id="opsCounter">0 m²</div>
+      <div class="progress-bar"><div class="progress" id="opsProgress"></div></div>
+      <div class="target-label" id="opsTargetLabel">Target: 0 m²</div>
+      <div class="milestone"    id="opsMilestone">Let's break the 1st 25%!</div>
+      <div class="top-seller"   id="topAchiever">Top Achiever: N/A</div>
+    </div>
   </div>
 
   <audio id="celebrateSound" src="https://actions.google.com/sounds/v1/crowds/crowd_cheer.ogg"></audio>
-
   <script>
     const SHEET_ID = '1EKKNz639aylsX8mDBzBG00k2Dq9B_TeidN6dXyGjtYg';
     const URL      = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
@@ -109,28 +77,26 @@
         const res  = await fetch(URL);
         const data = await res.json();
 
-        // اقرأ الهدفين من أول صف
-        const first  = data[0];
-        const salesTarget = parseFloat(first.sales_target) || 0;
-        const opsTarget   = parseFloat(first.ops_target)   || 0;
+        // targets من أول صف
+        const first        = data[0];
+        const salesTarget  = parseFloat(first.sales_target) || 0;
+        const opsTarget    = parseFloat(first.ops_target)   || 0;
 
-        // اجمع القياسات
+        // جمع المترات بدون slice!
         let salesTotal = 0, opsTotal = 0;
         const salesBy = {}, opsBy = {};
 
-        data.slice(1).forEach(row => {
+        data.forEach(row => {
           const sM = parseFloat(row.sales_meter) || 0;
           const oM = parseFloat(row.ops_meter)   || 0;
           salesTotal += sM;
           opsTotal   += oM;
-
           if (row.sales_member)
             salesBy[row.sales_member] = (salesBy[row.sales_member] || 0) + sM;
           if (row.ops_member)
             opsBy[row.ops_member]       = (opsBy[row.ops_member]   || 0) + oM;
         });
 
-        // حدّث الواجهات
         updateTeam('sales', salesTotal, salesTarget, salesBy);
         updateTeam('ops',   opsTotal,   opsTarget,   opsBy, true);
 
@@ -147,28 +113,20 @@
       const topEl = document.getElementById(isOps ? 'topAchiever' : 'topSeller');
       const sound = document.getElementById('celebrateSound');
 
-      // Counter & Progress
-      cnt.textContent    = `${total} m²`;
-      const pct = target > 0 ? Math.min((total/target)*100,100) : 0;
-      prog.style.width   = `${pct}%`;
-      lbl.textContent    = `Target: ${target} m²`;
+      cnt.textContent = `${total} m²`;
+      const pct = target>0 ? Math.min((total/target)*100,100) : 0;
+      prog.style.width = `${pct}%`;
+      lbl.textContent  = `Target: ${target} m²`;
 
-      // Milestones ديناميكي
-      if      (total >= target)        { mile.textContent = '🎉 Goal Achieved!'; sound.play(); }
-      else if (total >= target * 0.75) { mile.textContent = '🔥 Almost there!';           }
-      else if (total >= target * 0.5)  { mile.textContent = '💪 Halfway!';               }
-      else                              { mile.textContent = `Let's break the 1st ${Math.floor(target*0.25)} m²!`; }
+      if      (total >= target)        { mile.textContent='🎉 Goal Achieved!'; sound.play(); }
+      else if (total >= target*0.75)   { mile.textContent='🔥 Almost there!';          }
+      else if (total >= target*0.5)    { mile.textContent='💪 Halfway!';                }
+      else                              { mile.textContent=`Let's break 25%!`;         }
 
-      // Top performer
-      const top = Object.entries(byMember)
-                        .sort((a,b)=>b[1]-a[1])[0];
-      if (top) {
-        const label = isOps ? 'Top Achiever' : 'Top Seller';
-        topEl.textContent = `${label}: ${top[0]}`;
-      }
+      const top = Object.entries(byMember).sort((a,b)=>b[1]-a[1])[0];
+      if(top) topEl.textContent = `${isOps?'Top Achiever':'Top Seller'}: ${top[0]}`;
     }
 
-    // شغّل أول مرة وكل 60 ثانية
     fetchData();
     setInterval(fetchData, 60_000);
   </script>
