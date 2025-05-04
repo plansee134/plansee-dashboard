@@ -26,6 +26,7 @@
       margin-bottom: 30px;
     }
 
+    /* Flex container لعرض الكروت جنب بعض */
     .teams-wrapper {
       display: flex;
       flex-wrap: wrap;
@@ -74,7 +75,7 @@
       font-size: 18px;
     }
 
-    /* —— ألوان Sales بالبرتقالي —— */
+    /* —— Sales باللون البرتقالي —— */
     #salesTeam h2,
     #salesTeam .counter,
     #salesTeam .target-label,
@@ -85,19 +86,15 @@
       background-color: #f5a623;
     }
 
-    /* —— ألوان Ops بالأخضر —— */
+    /* —— Ops باللون الأخضر —— */
     #opsTeam h2,
+    #opsTeam .counter,
     #opsTeam .target-label,
     #opsTeam .top-seller {
       color: #4CAF50;
     }
     #opsTeam .progress {
       background-color: #4CAF50;
-    }
-
-    /* —— Override: خلي رقم الـ counter للأوبس يبقى برتقالي —— */
-    #opsTeam .counter {
-      color: #f5a623 !important;
     }
   </style>
 </head>
@@ -106,22 +103,24 @@
   <div class="tagline">Get what you see</div>
 
   <div class="teams-wrapper">
+    <!-- Sales Team Card -->
     <div class="team-container" id="salesTeam">
       <h2>Sales Team</h2>
-      <div class="counter" id="salesCounter">0 m²</div>
+      <div class="counter"      id="salesCounter">0 m²</div>
       <div class="progress-bar"><div class="progress" id="salesProgress"></div></div>
       <div class="target-label" id="salesTargetLabel">Target: 0 m²</div>
-      <div class="milestone" id="salesMilestone">Let's break the 1st 25%!</div>
-      <div class="top-seller" id="topSeller">Top Seller: N/A</div>
+      <div class="milestone"    id="salesMilestone">Let's break the 1st 25%!</div>
+      <div class="top-seller"   id="topSeller">Top Seller: N/A</div>
     </div>
 
+    <!-- Operation Team Card -->
     <div class="team-container" id="opsTeam">
       <h2>Operation Team</h2>
-      <div class="counter" id="opsCounter">0 m²</div>
+      <div class="counter"      id="opsCounter">0 m²</div>
       <div class="progress-bar"><div class="progress" id="opsProgress"></div></div>
       <div class="target-label" id="opsTargetLabel">Target: 0 m²</div>
-      <div class="milestone" id="opsMilestone">Let's break the 1st 25%!</div>
-      <div class="top-seller" id="topAchiever">Top Achiever: N/A</div>
+      <div class="milestone"    id="opsMilestone">Let's break the 1st 25%!</div>
+      <div class="top-seller"   id="topAchiever">Top Achiever: N/A</div>
     </div>
   </div>
 
@@ -131,28 +130,36 @@
     const URL      = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
 
     async function fetchData() {
-      const res  = await fetch(URL);
-      const data = await res.json();
-      const first       = data[0];
-      const salesTarget = parseFloat(first.sales_target) || 0;
-      const opsTarget   = parseFloat(first.ops_target)   || 0;
+      try {
+        const res  = await fetch(URL);
+        const data = await res.json();
 
-      let salesTotal = 0, opsTotal = 0;
-      const salesBy = {}, opsBy = {};
+        // قراءة الأهداف من الصف الأول
+        const first       = data[0];
+        const salesTarget = parseFloat(first.sales_target) || 0;
+        const opsTarget   = parseFloat(first.ops_target)   || 0;
 
-      data.forEach(row => {
-        const sM = parseFloat(row.sales_meter) || 0;
-        const oM = parseFloat(row.ops_meter)   || 0;
-        salesTotal += sM;
-        opsTotal   += oM;
-        if (row.sales_member)
-          salesBy[row.sales_member] = (salesBy[row.sales_member] || 0) + sM;
-        if (row.ops_member)
-          opsBy[row.ops_member]       = (opsBy[row.ops_member]   || 0) + oM;
-      });
+        // جمع القياسات لكلا الفريقين
+        let salesTotal = 0, opsTotal = 0;
+        const salesBy = {}, opsBy = {};
 
-      updateTeam('sales', salesTotal, salesTarget, salesBy);
-      updateTeam('ops',   opsTotal,   opsTarget,   opsBy, true);
+        data.forEach(row => {
+          const sM = parseFloat(row.sales_meter) || 0;
+          const oM = parseFloat(row.ops_meter)   || 0;
+          salesTotal += sM;
+          opsTotal   += oM;
+
+          if (row.sales_member)
+            salesBy[row.sales_member] = (salesBy[row.sales_member] || 0) + sM;
+          if (row.ops_member)
+            opsBy[row.ops_member]       = (opsBy[row.ops_member]   || 0) + oM;
+        });
+
+        updateTeam('sales', salesTotal, salesTarget, salesBy);
+        updateTeam('ops',   opsTotal,   opsTarget,   opsBy, true);
+      } catch (err) {
+        console.error('Fetch error:', err);
+      }
     }
 
     function updateTeam(prefix, total, target, byMember, isOps = false) {
@@ -163,20 +170,27 @@
       const topEl = document.getElementById(isOps ? 'topAchiever' : 'topSeller');
       const sound = document.getElementById('celebrateSound');
 
+      // Counter & progress
       cnt.textContent = `${total} m²`;
       const pct = target > 0 ? Math.min((total/target)*100, 100) : 0;
       prog.style.width = `${pct}%`;
       lbl.textContent  = `Target: ${target} m²`;
 
-      if      (total >= target)        { mile.textContent='🎉 Goal Achieved!'; sound.play(); }
-      else if (total >= target*0.75)   { mile.textContent='🔥 Almost there!';           }
-      else if (total >= target*0.5)    { mile.textContent='💪 Halfway!';               }
-      else                              { mile.textContent=`Let's break the 1st ${Math.floor(target*0.25)} m²!`; }
+      // Milestones
+      if      (total >= target)      { mile.textContent = '🎉 Goal Achieved!'; sound.play(); }
+      else if (total >= target*0.75) { mile.textContent = '🔥 Almost there!';            }
+      else if (total >= target*0.5)  { mile.textContent = '💪 Halfway!';                  }
+      else                            { mile.textContent = `Let's break the 1st ${Math.floor(target*0.25)} m²!`; }
 
-      const top = Object.entries(byMember).sort((a,b)=>b[1]-a[1])[0];
-      if (top) topEl.textContent = `${isOps?'Top Achiever':'Top Seller'}: ${top[0]}`;
+      // Top performer
+      const top = Object.entries(byMember).sort((a,b)=> b[1] - a[1])[0];
+      if (top) {
+        const label = isOps ? 'Top Achiever' : 'Top Seller';
+        topEl.textContent = `${label}: ${top[0]}`;
+      }
     }
 
+    // أول تشغيل وكل 60 ثانية
     fetchData();
     setInterval(fetchData, 60_000);
   </script>
