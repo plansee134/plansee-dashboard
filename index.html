@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PlanSee Sales Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PlanSee Sales & Ops Tracker</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
   <style>
     body {
@@ -14,30 +14,43 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
+      padding: 20px 0;
       text-align: center;
     }
     .logo {
       font-size: 48px;
       font-weight: bold;
-      margin-bottom: 10px;
+      margin-bottom: 5px;
     }
+    .logo span { color: #fff; }
     .tagline {
       font-size: 18px;
       color: #fff;
       margin-bottom: 30px;
     }
+    .team-container {
+      width: 80%;
+      max-width: 600px;
+      background: #111;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+    .team-container h2 {
+      font-size: 28px;
+      color: #fff;
+      margin-bottom: 15px;
+    }
     .counter {
-      font-size: 72px;
+      font-size: 56px;
       font-weight: bold;
-      margin: 20px 0;
+      margin: 10px 0;
     }
     .progress-bar {
-      width: 80%;
-      height: 40px;
+      width: 100%;
+      height: 30px;
       background-color: #333;
-      border-radius: 20px;
+      border-radius: 15px;
       overflow: hidden;
       margin-bottom: 10px;
     }
@@ -48,85 +61,116 @@
       transition: width 1s ease-in-out;
     }
     .target-label {
-      font-size: 16px;
+      font-size: 14px;
       color: #ccc;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
     .milestone {
-      font-size: 24px;
+      font-size: 20px;
       color: #fff;
-      margin-top: 10px;
+      margin-bottom: 10px;
     }
     .top-seller {
-      margin-top: 30px;
-      font-size: 20px;
+      font-size: 18px;
       color: #f5a623;
     }
   </style>
 </head>
 <body>
-  <div class="logo">Plan<span style="color:white">See</span></div>
+  <div class="logo">Plan<span>See</span></div>
   <div class="tagline">Get what you see</div>
-  <div class="counter" id="counter">0 m²</div>
-  <div class="progress-bar">
-    <div class="progress" id="progress"></div>
+
+  <div class="team-container" id="salesTeam">
+    <h2>Sales Team</h2>
+    <div class="counter"      id="salesCounter">0 m²</div>
+    <div class="progress-bar"><div class="progress" id="salesProgress"></div></div>
+    <div class="target-label" id="salesTargetLabel">Target: 0 m²</div>
+    <div class="milestone"    id="salesMilestone">Let's break the 1st 25%!</div>
+    <div class="top-seller"   id="topSeller">Top Seller: N/A</div>
   </div>
-  <div class="target-label">Target: 4500 m²</div>
-  <div class="milestone" id="milestone">Let's break the 1st 1000m²!</div>
-  <div class="top-seller" id="topSeller">Top Seller: ...</div>
+
+  <div class="team-container" id="opsTeam">
+    <h2>Operation Team</h2>
+    <div class="counter"      id="opsCounter">0 m²</div>
+    <div class="progress-bar"><div class="progress" id="opsProgress"></div></div>
+    <div class="target-label" id="opsTargetLabel">Target: 0 m²</div>
+    <div class="milestone"    id="opsMilestone">Let's break the 1st 25%!</div>
+    <div class="top-seller"   id="topAchiever">Top Achiever: N/A</div>
+  </div>
 
   <audio id="celebrateSound" src="https://actions.google.com/sounds/v1/crowds/crowd_cheer.ogg"></audio>
 
   <script>
-    const TARGET = 4500;
+    const SHEET_ID = '1EKKNz639aylsX8mDBzBG00k2Dq9B_TeidN6dXyGjtYg';
+    const URL      = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
 
     async function fetchData() {
-      const url = 'https://opensheet.elk.sh/1EKKNz639aylsX8mDBzBG00k2Dq9B_TeidN6dXyGjtYg/Sheet1';
       try {
-        const res = await fetch(url);
+        const res  = await fetch(URL);
         const data = await res.json();
-        let total = 0;
-        const memberTotals = {};
 
-        data.forEach(row => {
-          const meters = parseFloat(row.meter);
-          const member = row.member;
-          if (!isNaN(meters)) {
-            total += meters;
-            if (member) {
-              memberTotals[member] = (memberTotals[member] || 0) + meters;
-            }
-          }
+        // اقرأ الهدفين من أول صف
+        const first  = data[0];
+        const salesTarget = parseFloat(first.sales_target) || 0;
+        const opsTarget   = parseFloat(first.ops_target)   || 0;
+
+        // اجمع القياسات
+        let salesTotal = 0, opsTotal = 0;
+        const salesBy = {}, opsBy = {};
+
+        data.slice(1).forEach(row => {
+          const sM = parseFloat(row.sales_meter) || 0;
+          const oM = parseFloat(row.ops_meter)   || 0;
+          salesTotal += sM;
+          opsTotal   += oM;
+
+          if (row.sales_member)
+            salesBy[row.sales_member] = (salesBy[row.sales_member] || 0) + sM;
+          if (row.ops_member)
+            opsBy[row.ops_member]       = (opsBy[row.ops_member]   || 0) + oM;
         });
 
-        document.getElementById('counter').textContent = ${total} m²;
-        const percentage = Math.min((total / TARGET) * 100, 100);
-        document.getElementById('progress').style.width = ${percentage}%;
+        // حدّث الواجهات
+        updateTeam('sales', salesTotal, salesTarget, salesBy);
+        updateTeam('ops',   opsTotal,   opsTarget,   opsBy, true);
 
-        const milestone = document.getElementById('milestone');
-        const sound = document.getElementById('celebrateSound');
-
-        if (total >= 3000) {
-          milestone.textContent = '🎉 Goal Achieved! Incredible work team!';
-          sound.play();
-        } else if (total >= 2000) {
-          milestone.textContent = '🔥 Final push! Just a little more!';
-        } else if (total >= 1000) {
-          milestone.textContent = '💪 Halfway there! Keep going!';
-        } else {
-          milestone.textContent = "Let's break the 1st 1000m²!";
-        }
-
-        const topMember = Object.entries(memberTotals).sort((a, b) => b[1] - a[1])[0];
-        document.getElementById('topSeller').textContent = topMember ? Top Seller: ${topMember[0]} : 'Top Seller: N/A';
-      } catch (error) {
-        console.error('Error fetching data:', error);
+      } catch (err) {
+        console.error('Fetch error:', err);
       }
     }
 
+    function updateTeam(prefix, total, target, byMember, isOps = false) {
+      const cnt   = document.getElementById(`${prefix}Counter`);
+      const prog  = document.getElementById(`${prefix}Progress`);
+      const lbl   = document.getElementById(`${prefix}TargetLabel`);
+      const mile  = document.getElementById(`${prefix}Milestone`);
+      const topEl = document.getElementById(isOps ? 'topAchiever' : 'topSeller');
+      const sound = document.getElementById('celebrateSound');
+
+      // Counter & Progress
+      cnt.textContent    = `${total} m²`;
+      const pct = target > 0 ? Math.min((total/target)*100,100) : 0;
+      prog.style.width   = `${pct}%`;
+      lbl.textContent    = `Target: ${target} m²`;
+
+      // Milestones ديناميكي
+      if      (total >= target)        { mile.textContent = '🎉 Goal Achieved!'; sound.play(); }
+      else if (total >= target * 0.75) { mile.textContent = '🔥 Almost there!';           }
+      else if (total >= target * 0.5)  { mile.textContent = '💪 Halfway!';               }
+      else                              { mile.textContent = `Let's break the 1st ${Math.floor(target*0.25)} m²!`; }
+
+      // Top performer
+      const top = Object.entries(byMember)
+                        .sort((a,b)=>b[1]-a[1])[0];
+      if (top) {
+        const label = isOps ? 'Top Achiever' : 'Top Seller';
+        topEl.textContent = `${label}: ${top[0]}`;
+      }
+    }
+
+    // شغّل أول مرة وكل 60 ثانية
     fetchData();
-    setInterval(fetchData, 60000);
+    setInterval(fetchData, 60_000);
   </script>
 </body>
 </html>
-
