@@ -242,7 +242,8 @@
       const topEl = document.getElementById("topDesigners");
       const sound = document.getElementById('celebrateSound');
 
-      cnt.textContent = `${totalMeter.toFixed(1)} m²`;
+      cnt.textContent = `${Math.round(totalMeter)} m²`;
+
       const pct = totalTarget > 0 ? Math.min((totalMeter / totalTarget) * 100, 100) : 0;
       prog.style.width = `${pct}%`;
       lbl.textContent = `Target: ${totalTarget.toFixed(1)} m²`;
