@@ -246,7 +246,7 @@
 
       const pct = totalTarget > 0 ? Math.min((totalMeter / totalTarget) * 100, 100) : 0;
       prog.style.width = `${pct}%`;
-      lbl.textContent = `Target: ${totalTarget.toFixed(1)} m²`;
+      lbl.textContent = `Target: ${Math.round(totalTarget)} m²`;
 
       if      (totalMeter >= totalTarget)     { mile.textContent = '🎉 Goal Achieved!'; sound.play(); }
       else if (totalMeter >= totalTarget*0.75){ mile.textContent = '🔥 Almost there!'; }
