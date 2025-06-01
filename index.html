@@ -26,13 +26,13 @@
       margin-bottom: 30px;
     }
 
-    /* Flex container لعرض الكروت جنب بعض */
     .teams-wrapper {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 20px;
     }
+
     .team-container {
       flex: 1 1 300px;
       max-width: 500px;
@@ -40,15 +40,18 @@
       border-radius: 8px;
       padding: 20px;
     }
+
     .team-container h2 {
       font-size: 28px;
       margin-bottom: 15px;
     }
+
     .counter {
       font-size: 56px;
       font-weight: bold;
       margin: 10px 0;
     }
+
     .progress-bar {
       width: 100%;
       height: 30px;
@@ -57,25 +60,29 @@
       overflow: hidden;
       margin-bottom: 10px;
     }
+
     .progress {
       height: 100%;
       width: 0;
       transition: width 1s ease-in-out;
     }
+
     .target-label {
       font-size: 14px;
       margin-bottom: 15px;
     }
+
     .milestone {
       font-size: 20px;
       color: #fff;
       margin-bottom: 10px;
     }
+
     .top-seller {
       font-size: 18px;
     }
 
-    /* —— Sales باللون البرتقالي —— */
+    /* Sales - Orange */
     #salesTeam h2,
     #salesTeam .counter,
     #salesTeam .target-label,
@@ -86,7 +93,7 @@
       background-color: #f5a623;
     }
 
-    /* —— Ops باللون الأخضر —— */
+    /* Ops - Green */
     #opsTeam h2,
     #opsTeam .counter,
     #opsTeam .target-label,
@@ -95,6 +102,17 @@
     }
     #opsTeam .progress {
       background-color: #4CAF50;
+    }
+
+    /* Design - Blue */
+    #designTeam h2,
+    #designTeam .counter,
+    #designTeam .target-label,
+    #designTeam .top-seller {
+      color: #00BCD4;
+    }
+    #designTeam .progress {
+      background-color: #00BCD4;
     }
   </style>
 </head>
@@ -122,9 +140,20 @@
       <div class="milestone"    id="opsMilestone">Let's break the 1st 25%!</div>
       <div class="top-seller"   id="topAchiever">Top Achiever: N/A</div>
     </div>
+
+    <!-- Design Team Card -->
+    <div class="team-container" id="designTeam">
+      <h2>Design Team</h2>
+      <div class="counter"      id="designCounter">0 m²</div>
+      <div class="progress-bar"><div class="progress" id="designProgress"></div></div>
+      <div class="target-label" id="designTargetLabel">Target: 0 m²</div>
+      <div class="milestone"    id="designMilestone">Let's break the 1st 25%!</div>
+      <div class="top-seller"   id="topDesigners">Top Achievers: N/A</div>
+    </div>
   </div>
 
   <audio id="celebrateSound" src="https://actions.google.com/sounds/v1/crowds/crowd_cheer.ogg"></audio>
+
   <script>
     const SHEET_ID = '1EKKNz639aylsX8mDBzBG00k2Dq9B_TeidN6dXyGjtYg';
     const URL      = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
@@ -134,12 +163,10 @@
         const res  = await fetch(URL);
         const data = await res.json();
 
-        // قراءة الأهداف من الصف الأول
         const first       = data[0];
         const salesTarget = parseFloat(first.sales_target) || 0;
         const opsTarget   = parseFloat(first.ops_target)   || 0;
 
-        // جمع القياسات لكلا الفريقين
         let salesTotal = 0, opsTotal = 0;
         const salesBy = {}, opsBy = {};
 
@@ -152,11 +179,13 @@
           if (row.sales_member)
             salesBy[row.sales_member] = (salesBy[row.sales_member] || 0) + sM;
           if (row.ops_member)
-            opsBy[row.ops_member]       = (opsBy[row.ops_member]   || 0) + oM;
+            opsBy[row.ops_member] = (opsBy[row.ops_member] || 0) + oM;
         });
 
         updateTeam('sales', salesTotal, salesTarget, salesBy);
-        updateTeam('ops',   opsTotal,   opsTarget,   opsBy, true);
+        updateTeam('ops', opsTotal, opsTarget, opsBy, true);
+        updateDesignTeam(data);
+
       } catch (err) {
         console.error('Fetch error:', err);
       }
@@ -170,19 +199,16 @@
       const topEl = document.getElementById(isOps ? 'topAchiever' : 'topSeller');
       const sound = document.getElementById('celebrateSound');
 
-      // Counter & progress
       cnt.textContent = `${total} m²`;
-      const pct = target > 0 ? Math.min((total/target)*100, 100) : 0;
+      const pct = target > 0 ? Math.min((total / target) * 100, 100) : 0;
       prog.style.width = `${pct}%`;
-      lbl.textContent  = `Target: ${target} m²`;
+      lbl.textContent = `Target: ${target} m²`;
 
-      // Milestones
       if      (total >= target)      { mile.textContent = '🎉 Goal Achieved!'; sound.play(); }
-      else if (total >= target*0.75) { mile.textContent = '🔥 Almost there!';            }
-      else if (total >= target*0.5)  { mile.textContent = '💪 Halfway!';                  }
-      else                            { mile.textContent = `Let's break the 1st ${Math.floor(target*0.25)} m²!`; }
+      else if (total >= target*0.75) { mile.textContent = '🔥 Almost there!'; }
+      else if (total >= target*0.5)  { mile.textContent = '💪 Halfway!'; }
+      else                           { mile.textContent = `Let's break the 1st ${Math.floor(target*0.25)} m²!`; }
 
-      // Top performer
       const top = Object.entries(byMember).sort((a,b)=> b[1] - a[1])[0];
       if (top) {
         const label = isOps ? 'Top Achiever' : 'Top Seller';
@@ -190,9 +216,50 @@
       }
     }
 
-    // أول تشغيل وكل 60 ثانية
+    function updateDesignTeam(data) {
+      let totalTarget = 0, totalMeter = 0;
+      const memberMap = {};
+
+      data.forEach(row => {
+        const dT = parseFloat(row.design_target)   || 0;
+        const tT = parseFloat(row.technical_target) || 0;
+        const dM = parseFloat(row.design_meter)    || 0;
+        const tM = parseFloat(row.technical_meter)  || 0;
+        const member1 = row.design_member;
+        const member2 = row.technical_member;
+
+        totalTarget += (dT + tT) / 2;
+        totalMeter  += (dM + tM) / 2;
+
+        if (member1) memberMap[member1] = (memberMap[member1] || 0) + dM;
+        if (member2) memberMap[member2] = (memberMap[member2] || 0) + tM;
+      });
+
+      const cnt   = document.getElementById("designCounter");
+      const prog  = document.getElementById("designProgress");
+      const lbl   = document.getElementById("designTargetLabel");
+      const mile  = document.getElementById("designMilestone");
+      const topEl = document.getElementById("topDesigners");
+      const sound = document.getElementById('celebrateSound');
+
+      cnt.textContent = `${totalMeter.toFixed(1)} m²`;
+      const pct = totalTarget > 0 ? Math.min((totalMeter / totalTarget) * 100, 100) : 0;
+      prog.style.width = `${pct}%`;
+      lbl.textContent = `Target: ${totalTarget.toFixed(1)} m²`;
+
+      if      (totalMeter >= totalTarget)     { mile.textContent = '🎉 Goal Achieved!'; sound.play(); }
+      else if (totalMeter >= totalTarget*0.75){ mile.textContent = '🔥 Almost there!'; }
+      else if (totalMeter >= totalTarget*0.5) { mile.textContent = '💪 Halfway!'; }
+      else                                    { mile.textContent = `Let's break the 1st ${Math.floor(totalTarget*0.25)} m²!`; }
+
+      const topSorted = Object.entries(memberMap).sort((a, b) => b[1] - a[1]).slice(0, 2);
+      if (topSorted.length) {
+        topEl.innerHTML = `Top Achievers:<br>${topSorted.map(x => x[0]).join('<br>')}`;
+      }
+    }
+
     fetchData();
-    setInterval(fetchData, 60_000);
+    setInterval(fetchData, 60000);
   </script>
 </body>
 </html>
