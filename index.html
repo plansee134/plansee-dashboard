@@ -124,31 +124,31 @@
     <!-- Sales Team Card -->
     <div class="team-container" id="salesTeam">
       <h2>Sales Team</h2>
-      <div class="counter"      id="salesCounter">0 m²</div>
+      <div class="counter" id="salesCounter">0 m²</div>
       <div class="progress-bar"><div class="progress" id="salesProgress"></div></div>
       <div class="target-label" id="salesTargetLabel">Target: 0 m²</div>
-      <div class="milestone"    id="salesMilestone">Let's break the 1st 25%!</div>
-      <div class="top-seller"   id="topSeller">Top Seller: N/A</div>
+      <div class="milestone" id="salesMilestone">Let's break the 1st 25%!</div>
+      <div class="top-seller" id="topSeller">Top Seller: N/A</div>
     </div>
 
-    <!-- Operation Team Card -->
-    <div class="team-container" id="opsTeam">
-      <h2>Operation Team</h2>
-      <div class="counter"      id="opsCounter">0 m²</div>
-      <div class="progress-bar"><div class="progress" id="opsProgress"></div></div>
-      <div class="target-label" id="opsTargetLabel">Target: 0 m²</div>
-      <div class="milestone"    id="opsMilestone">Let's break the 1st 25%!</div>
-      <div class="top-seller"   id="topAchiever">Top Achiever: N/A</div>
-    </div>
-
-    <!-- Design Team Card -->
+    <!-- Design Team Card (Now in the middle) -->
     <div class="team-container" id="designTeam">
       <h2>Design Team</h2>
-      <div class="counter"      id="designCounter">0 m²</div>
+      <div class="counter" id="designCounter">0 m²</div>
       <div class="progress-bar"><div class="progress" id="designProgress"></div></div>
       <div class="target-label" id="designTargetLabel">Target: 0 m²</div>
-      <div class="milestone"    id="designMilestone">Let's break the 1st 25%!</div>
-      <div class="top-seller"   id="topDesigners">Top Achievers: N/A</div>
+      <div class="milestone" id="designMilestone">Let's break the 1st 25%!</div>
+      <div class="top-seller" id="topDesigners">Top Achievers: N/A</div>
+    </div>
+
+    <!-- Operation Team Card (Now last) -->
+    <div class="team-container" id="opsTeam">
+      <h2>Operation Team</h2>
+      <div class="counter" id="opsCounter">0 m²</div>
+      <div class="progress-bar"><div class="progress" id="opsProgress"></div></div>
+      <div class="target-label" id="opsTargetLabel">Target: 0 m²</div>
+      <div class="milestone" id="opsMilestone">Let's break the 1st 25%!</div>
+      <div class="top-seller" id="topAchiever">Top Achiever: N/A</div>
     </div>
   </div>
 
@@ -156,25 +156,25 @@
 
   <script>
     const SHEET_ID = '1EKKNz639aylsX8mDBzBG00k2Dq9B_TeidN6dXyGjtYg';
-    const URL      = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
+    const URL = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
 
     async function fetchData() {
       try {
-        const res  = await fetch(URL);
+        const res = await fetch(URL);
         const data = await res.json();
 
-        const first       = data[0];
+        const first = data[0];
         const salesTarget = parseFloat(first.sales_target) || 0;
-        const opsTarget   = parseFloat(first.ops_target)   || 0;
+        const opsTarget = parseFloat(first.ops_target) || 0;
 
         let salesTotal = 0, opsTotal = 0;
         const salesBy = {}, opsBy = {};
 
         data.forEach(row => {
           const sM = parseFloat(row.sales_meter) || 0;
-          const oM = parseFloat(row.ops_meter)   || 0;
+          const oM = parseFloat(row.ops_meter) || 0;
           salesTotal += sM;
-          opsTotal   += oM;
+          opsTotal += oM;
 
           if (row.sales_member)
             salesBy[row.sales_member] = (salesBy[row.sales_member] || 0) + sM;
@@ -192,10 +192,10 @@
     }
 
     function updateTeam(prefix, total, target, byMember, isOps = false) {
-      const cnt   = document.getElementById(`${prefix}Counter`);
-      const prog  = document.getElementById(`${prefix}Progress`);
-      const lbl   = document.getElementById(`${prefix}TargetLabel`);
-      const mile  = document.getElementById(`${prefix}Milestone`);
+      const cnt = document.getElementById(`${prefix}Counter`);
+      const prog = document.getElementById(`${prefix}Progress`);
+      const lbl = document.getElementById(`${prefix}TargetLabel`);
+      const mile = document.getElementById(`${prefix}Milestone`);
       const topEl = document.getElementById(isOps ? 'topAchiever' : 'topSeller');
       const sound = document.getElementById('celebrateSound');
 
@@ -204,12 +204,18 @@
       prog.style.width = `${pct}%`;
       lbl.textContent = `Target: ${target} m²`;
 
-      if      (total >= target)      { mile.textContent = '🎉 Goal Achieved!'; sound.play(); }
-      else if (total >= target*0.75) { mile.textContent = '🔥 Almost there!'; }
-      else if (total >= target*0.5)  { mile.textContent = '💪 Halfway!'; }
-      else                           { mile.textContent = `Let's break the 1st ${Math.floor(target*0.25)} m²!`; }
+      if (total >= target) {
+        mile.textContent = '🎉 Goal Achieved!';
+        sound.play();
+      } else if (total >= target * 0.75) {
+        mile.textContent = '🔥 Almost there!';
+      } else if (total >= target * 0.5) {
+        mile.textContent = '💪 Halfway!';
+      } else {
+        mile.textContent = `Let's break the 1st ${Math.floor(target * 0.25)} m²!`;
+      }
 
-      const top = Object.entries(byMember).sort((a,b)=> b[1] - a[1])[0];
+      const top = Object.entries(byMember).sort((a, b) => b[1] - a[1])[0];
       if (top) {
         const label = isOps ? 'Top Achiever' : 'Top Seller';
         topEl.textContent = `${label}: ${top[0]}`;
@@ -221,24 +227,24 @@
       const memberMap = {};
 
       data.forEach(row => {
-        const dT = parseFloat(row.design_target)   || 0;
+        const dT = parseFloat(row.design_target) || 0;
         const tT = parseFloat(row.technical_target) || 0;
-        const dM = parseFloat(row.design_meter)    || 0;
-        const tM = parseFloat(row.technical_meter)  || 0;
+        const dM = parseFloat(row.design_meter) || 0;
+        const tM = parseFloat(row.technical_meter) || 0;
         const member1 = row.design_member;
         const member2 = row.technical_member;
 
         totalTarget += (dT + tT) / 2;
-        totalMeter  += (dM + tM) / 2;
+        totalMeter += (dM + tM) / 2;
 
         if (member1) memberMap[member1] = (memberMap[member1] || 0) + dM;
         if (member2) memberMap[member2] = (memberMap[member2] || 0) + tM;
       });
 
-      const cnt   = document.getElementById("designCounter");
-      const prog  = document.getElementById("designProgress");
-      const lbl   = document.getElementById("designTargetLabel");
-      const mile  = document.getElementById("designMilestone");
+      const cnt = document.getElementById("designCounter");
+      const prog = document.getElementById("designProgress");
+      const lbl = document.getElementById("designTargetLabel");
+      const mile = document.getElementById("designMilestone");
       const topEl = document.getElementById("topDesigners");
       const sound = document.getElementById('celebrateSound');
 
@@ -248,10 +254,16 @@
       prog.style.width = `${pct}%`;
       lbl.textContent = `Target: ${Math.round(totalTarget)} m²`;
 
-      if      (totalMeter >= totalTarget)     { mile.textContent = '🎉 Goal Achieved!'; sound.play(); }
-      else if (totalMeter >= totalTarget*0.75){ mile.textContent = '🔥 Almost there!'; }
-      else if (totalMeter >= totalTarget*0.5) { mile.textContent = '💪 Halfway!'; }
-      else                                    { mile.textContent = `Let's break the 1st ${Math.floor(totalTarget*0.25)} m²!`; }
+      if (totalMeter >= totalTarget) {
+        mile.textContent = '🎉 Goal Achieved!';
+        sound.play();
+      } else if (totalMeter >= totalTarget * 0.75) {
+        mile.textContent = '🔥 Almost there!';
+      } else if (totalMeter >= totalTarget * 0.5) {
+        mile.textContent = '💪 Halfway!';
+      } else {
+        mile.textContent = `Let's break the 1st ${Math.floor(totalTarget * 0.25)} m²!`;
+      }
 
       const topSorted = Object.entries(memberMap).sort((a, b) => b[1] - a[1]).slice(0, 2);
       if (topSorted.length) {
